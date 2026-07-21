@@ -13,6 +13,11 @@ const COLORS = [
   '#e57373', // Z - red
   '#90caf9', // J - azul palido
   '#ffb74d', // L - orange
+  '#f06292', // + - rosa (pentominó)
+  '#cddc39', // U - lima (pentominó)
+  '#7986cb', // Y - índigo (pentominó)
+  '#f5f5f5', // single - blanco (recompensa tras Tetris)
+  '#616161', // hueca 3x3 - gris oscuro (reto)
 ];
 
 const PIECES = [
@@ -24,7 +29,16 @@ const PIECES = [
   [[5,5,0],[0,5,5],[0,0,0]],                  // Z
   [[6,0,0],[6,6,6],[0,0,0]],                  // J
   [[0,0,7],[7,7,7],[0,0,0]],                  // L
+  [[0,8,0],[8,8,8],[0,8,0]],                  // + (pentominó)
+  [[9,0,9],[9,9,9]],                          // U (pentominó)
+  [[0,10],[10,10],[0,10],[0,10]],             // Y (pentominó)
+  [[11]],                                     // single (recompensa post-Tetris)
+  [[12,12,12],[12,0,12],[12,12,12]],          // 3x3 hueca (reto)
 ];
+
+const SPECIAL_PIECE_TYPES = [8, 9, 10, 12];
+const SPECIAL_PIECE_CHANCE = 0.12;
+const SINGLE_PIECE_TYPE = 11;
 
 const LINE_SCORES = [0, 100, 300, 500, 800];
 
@@ -64,9 +78,16 @@ function createBoard() {
 }
 
 function randomPiece() {
-  const type = Math.floor(Math.random() * 7) + 1;
+  const type = Math.random() < SPECIAL_PIECE_CHANCE
+    ? SPECIAL_PIECE_TYPES[Math.floor(Math.random() * SPECIAL_PIECE_TYPES.length)]
+    : Math.floor(Math.random() * 7) + 1;
   const shape = PIECES[type].map(row => [...row]);
   return { type, shape, x: Math.floor(COLS / 2) - Math.floor(shape[0].length / 2), y: 0 };
+}
+
+function createSinglePiece() {
+  const shape = PIECES[SINGLE_PIECE_TYPE].map(row => [...row]);
+  return { type: SINGLE_PIECE_TYPE, shape, x: Math.floor(COLS / 2) - Math.floor(shape[0].length / 2), y: 0 };
 }
 
 function collide(shape, ox, oy) {
@@ -125,6 +146,7 @@ function clearLines() {
     score += (LINE_SCORES[cleared] || 0) * level;
     level = Math.floor(lines / 10) + 1;
     dropInterval = Math.max(100, 1000 - (level - 1) * 90);
+    if (cleared === 4) next = createSinglePiece();
     updateHUD();
   }
 }
