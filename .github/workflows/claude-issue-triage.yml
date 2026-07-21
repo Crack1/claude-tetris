@@ -1,0 +1,57 @@
+name: Claude Issue Triage
+
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Run Claude Issue Triage
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: |
+            --allowed-tools "Bash(gh issue edit:*),Bash(gh issue comment:*),Bash(gh label list:*),Bash(gh label create:*)"
+          prompt: |
+            Analiza el issue #${{ github.event.issue.number }} de este repositorio
+            ("${{ github.event.issue.title }}") y realiza estas dos acciones:
+
+            1. LABELS: aplica exactamente un label de tipo y un label de área con
+               `gh issue edit ${{ github.event.issue.number }} --add-label "<label>"`.
+               - Tipo (elige uno): bug, enhancement, question
+               - Área (elige una, según game.js / CLAUDE.md):
+                 - area: piezas-rotacion   (PIECES, rotateCW, wall kicks en tryRotate)
+                 - area: colision-tablero  (collide, lockPiece, merge, clearLines)
+                 - area: loop-estado       (loop, dropAccum, pausa/reanudación)
+                 - area: puntuacion-nivel  (LINE_SCORES, nivel, dropInterval)
+                 - area: renderizado       (draw, ghost piece, canvas "next")
+                 - area: ui-estilos        (index.html, style.css, controles fuera de game.js)
+               - Antes de aplicar un label, comprueba con `gh label list` si ya existe.
+                 Si no existe, créalo con `gh label create "<nombre>" --color <hex>`
+                 (sin --force, para no sobrescribir colores de labels ya creados).
+               - Si el issue no da información suficiente para clasificarlo con
+                 confianza, aplica (y crea si falta) el label "needs-triage" en vez
+                 de adivinar.
+
+            2. DIAGNÓSTICO: publica un comentario con
+               `gh issue comment ${{ github.event.issue.number }} --body "..."` que incluya:
+               - Resumen de una línea del problema o petición.
+               - Diagnóstico técnico: qué función/sección de game.js está probablemente
+                 involucrada y por qué, basándote en la arquitectura de CLAUDE.md.
+               - Próximos pasos sugeridos para implementar la solución (lista breve).
+               - Si falta información para diagnosticar con confianza, dilo
+                 explícitamente y pide los datos que faltan (pasos para reproducir,
+                 navegador, captura) en vez de inventar una causa.
+
+            No modifiques código ni abras PRs — esta tarea es solo de triage y diagnóstico.
