@@ -22,10 +22,14 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: |
-            --allowed-tools "Bash(gh issue edit:*),Bash(gh issue comment:*),Bash(gh label list:*),Bash(gh label create:*)"
+            --allowed-tools "Read,Glob,Grep,Bash(gh issue edit:*),Bash(gh issue comment:*),Bash(gh label list:*),Bash(gh label create:*)"
           prompt: |
             Analiza el issue #${{ github.event.issue.number }} de este repositorio
-            ("${{ github.event.issue.title }}") y realiza estas dos acciones:
+            ("${{ github.event.issue.title }}"):
+
+            ${{ github.event.issue.body }}
+
+            Y realiza estas dos acciones:
 
             1. LABELS: aplica exactamente un label de tipo y un label de área con
                `gh issue edit ${{ github.event.issue.number }} --add-label "<label>"`.
