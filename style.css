@@ -77,6 +77,34 @@ body {
   border-color: var(--accent);
 }
 
+.skin-select {
+  position: absolute;
+  top: 0;
+  right: 40px;
+  background: var(--bg-board);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  height: 32px;
+  padding: 0 8px;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.2s;
+}
+
+.skin-select:hover,
+.skin-select:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+/* ---- Skin: neon ---- */
+[data-skin="neon"] #board,
+[data-skin="neon"] #next-canvas {
+  background: #000;
+}
+
 .game-title {
   text-align: center;
   font-size: 32px;
